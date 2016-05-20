@@ -1,0 +1,108 @@
+*navmode.txt*               New mode for navigation                     *navmode*
+
+                              NAVMODE MANUAL
+
+1. About Navmode                                   |navmode-about|
+2. Quick Start                                     |navmode-quickstart|
+3. Key Mappings and Functions                      |navmode-keymappings|
+                                                   |navmode-functions|
+4. Options                                         |navmode-options|
+5. Changelog                                       |navmode-changelog|
+6. Contribute                                      |navmode-contribute|
+7. License                                         |navmode-license|
+
+=============================================================================
+1. ABOUT NAVMODE ~
+                                                                *navmode-about*
+
+Navmode creates a new (pseudo-)mode for navigation. This lets you move around
+with single keystrokes ie. without Shift or Control modifiers.
+
+This is part of an effort to minimize chords (key pressed simultaneously)
+for the most frequently used commands. #nochord
+
+=============================================================================
+2. QUICK START ~
+                                                           *navmode-quickstart*
+
+1. Install the plugin Eg. with Pathogen:
+>
+   `cd ~/.vim/bundle && git clone https://github.com/fcpg/vim-navmode`
+<
+2. Add mappings into your .vimrc:
+>
+       nmap  ]j  :call Navmode('j')<cr> 
+       nmap  ]k  :call Navmode('k')<cr> 
+<
+3. Start navmode with the mappings above, then move around with j/k/u/d
+   (half-page down/up), e/y (line down/up) and t/b (top/bottom of buffer).
+
+4. Exit navmode with `<Space>` (stay on current position) or `<Backspace>` (go
+   back to position where navmode was activated). Any other key will also
+   exit navmode before executing the corresponding command.
+
+=============================================================================
+3. KEY MAPPINGS AND FUNCTIONS ~
+                                                          *navmode-keymappings*
+
+While navmode is active:
+
+- u/d
+  Move half-page down/up. Calls `<C-d>`/`<C-u>`.
+
+- j/k
+  Alternate bindings for u/d
+
+- e/y
+  Move down/up linewise. Calls `<C-e>`/`<C-y>`.
+
+- t/b
+  Move to top/bottom of buffer. Calls `gg`/`G`.
+
+- `<space>`
+  Quit navmode, start normal mode.
+
+- `<Backspace>`
+  Quit navmode, jump back to position where navmode was activated.
+
+- (other key)
+  Quit navmode and execute the normal command for that key.
+
+                                                            *navmode-functions*
+
+*Navmode()*
+Args: (`firstmove`)
+Start navmode, with optional first movement `firstmove` (string with
+j/k/e/y/t/b char).
+
+=============================================================================
+4. OPTIONS ~
+                                                              *navmode-options*
+
+*g:navmode_noremap*                                default: `1`
+Prevent the use of remapped motion keys (eg. `<C-d>`). Set to `0` to allow
+remaps.
+
+*g:navmode_mark*                                   default: `n`
+The mark used to jump back with `<Backspace>`.
+
+=============================================================================
+5. CHANGELOG ~
+                                                            *navmode-changelog*
+
+[1.0] - 2016-05-19
+  - Initial release
+
+=============================================================================
+6. CONTRIBUTE ~
+                                                           *navmode-contribute*
+
+Contribute on [Github](https://github.com/fcpg)
+
+=============================================================================
+7. LICENSE ~
+                                                              *navmode-license*
+
+[Attribution-ShareAlike 4.0 Int.](https://creativecommons.org/licenses/by-sa/4.0/)
+
+ vim: set expandtab sts=2 ts=2 sw=2 tw=78 ft=help norl:
