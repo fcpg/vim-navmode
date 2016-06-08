@@ -7,76 +7,128 @@ if exists("g:loaded_navmode") || &cp || v:version < 700
 endif
 let g:loaded_navmode = 1
 
+" Prevent remaps in navmode (ie. feedkeys)
 if !exists("g:navmode_noremap")
     let g:navmode_noremap = 1
 endif
 
-let s:navmode_pos = []
+" Navmode default maps
+let s:navmode_default_map = {
+            \ 'j':           "call NavmodePageDown()",
+            \ 'd':           "call NavmodePageDown()",
+            \ "\<Down>":     "call NavmodePageDown()",
+            \ "\<PageDown>": "call NavmodePageDown()",
+            \ 'k':           "call NavmodePageUp()",
+            \ 'u':           "call NavmodePageUp()",
+            \ "\<Up>":       "call NavmodePageUp()",
+            \ "\<PageUp>":   "call NavmodePageUp()",
+            \ 'e':           "call NavmodeLineUp()",
+            \ 'y':           "call NavmodeLineDown()",
+            \ 't':           "call NavmodeTop()",
+            \ "\<Home>":     "call NavmodeTop()",
+            \ "\<Left>":     "call NavmodeFeedkeys('[''')",
+            \ 'b':           "call NavmodeBottom()",
+            \ "\<End>":      "call NavmodeBottom()",
+            \ "\<Right>":    "call NavmodeFeedkeys(']''')",
+            \ 'm':           "call NavmodeMark()",
+            \ '''':          "call NavmodeJump()",
+            \ "\<Bs>":       "call NavmodeCancel()",
+            \ ' ':           '',
+            \}
 
-" Navmode()
+if !exists("g:navmode_no_default_map")
+    if !exists("g:navmode_map")
+        let g:navmode_map = {}
+    endif
+    call extend(g:navmode_map, s:navmode_default_map, 'keep')
+endif
+
+" String constant appended to feedkeys() arg so as to stay in navmode
+let s:feedstr_lo  = ":\<C-u>call Navmode()\<cr>"
+
 " Start navigation mode
 " Arg: optional first motion
 function! Navmode(...)
-    if !exists('w:navmode')
-        let w:navmode = 1
-        let s:navmode_pos = getpos('.')
+    if !exists('w:navmode_pos')
+        let w:navmode_pos = getpos('.')
     endif
     echoh MoreMsg | unsilent echo "-- NAVIGATE --" | echoh None
     redraw
     if a:0
-        let rc = ''
         let c  = a:1
     else
         let rc = getchar()
-        let c  = nr2char(rc)
+        let c  = rc =~ '^\d\+$' ? nr2char(rc) : rc
     endif
-    let fkmode = g:navmode_noremap ? 'n' : 'm'
-    if (strlen(c) == 1 && stridx('jkudeytbm''', c) != -1)
-                \ || rc == "\<Up>"     || rc == "\<Down>"
-                \ || rc == "\<Left>"   || rc == "\<Right>"
-                \ || rc == "\<PageUp>" || rc == "\<PageDown>"
-                \ || rc == "\<Home>"   || rc == "\<End>"
-        " looping branch
-        let feedstr = ":\<C-u>call Navmode()\<cr>"
-        if c == 'j' || c == 'd' || rc == "\<Down>"
-            if line('.') < line('$')
-                let feedstr = "\<C-d>" . feedstr
-            endif
-        elseif c == 'k' || c == 'u' || rc == "\<Up>"
-            if line('.') > 1
-                let feedstr = "\<C-u>" . feedstr
-            endif
-        elseif c == 'e'
-            let feedstr = "\<C-e>" . feedstr
-        elseif c == 'y'
-            let feedstr = "\<C-y>" . feedstr
-        elseif c == 't' || rc == "\<Home>" || rc == "\<Left>"
-            let feedstr = "gg" . feedstr
-        elseif c == 'b' || rc == "\<End>" || rc == "\<Right>"
-            let feedstr = "G" . feedstr
-        elseif c == 'm' || c == ''''
-            let rc2 = getchar()
-            let c2  = nr2char(rc2)
-            if c2 =~ '\a'
-                let feedstr = c . c2 . feedstr
-            endif
-        else
-            let feedstr = rc . feedstr
-        endif
-        call feedkeys(feedstr, fkmode)
-        return ''
+    " will exit unless set back in next exe call
+    let w:navmode = 0
+    if has_key(g:navmode_map, c)
+        exe g:navmode_map[c]
     else
-        " exit branch
-        if c == ' '
-            " exit on space
-        elseif rc == "\<Bs>"
-            " return on starting point with Backspace
-            call setpos('.', s:navmode_pos)
-        else
-            call feedkeys(c)
-        endif
+        call feedkeys(c)
+    endif
+    if !w:navmode
         echo ""
         unlet w:navmode
+        unlet w:navmode_pos
         return ''
     endif
 endfun
+
+" Call feedkeys with 1st arg, and set internal var to stay in navmode 
+" Arg: feedstr  the string to pass to feedkeys()
+" Arg: fkmode   optional mode for feedkeys() - use g:navmode_noremap if unset
+function! NavmodeFeedkeys(feedstr, ...)
+    let fkmode = a:0 ? a:1 : (g:navmode_noremap ? 'n' : 'm')
+    call feedkeys(a:feedstr . s:feedstr_lo, fkmode)
+    let w:navmode = 1
+endfun
+
+function! NavmodePageDown()
+    let feedstr = line('.') < line('$') ? "\<C-d>" : ""
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodePageUp()
+    let feedstr = line('.') > 1 ? "\<C-u>" : ""
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeLineUp()
+    let feedstr = "\<C-e>"
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeLineDown()
+    let feedstr = "\<C-y>"
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeTop()
+    let feedstr = "gg"
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeBottom()
+    let feedstr = "G"
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeMark()
+    let rc = getchar()
+    let c  = nr2char(rc)
+    let feedstr = c =~ '\a' ? 'm' . c : ''
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeJump()
+    let rc = getchar()
+    let c  = nr2char(rc)
+    let feedstr = c =~ '\a' ? '''' . c : ''
+    call NavmodeFeedkeys(feedstr)
+endfun
+
+function! NavmodeCancel()
+    call setpos('.', w:navmode_pos)
+endfun
+

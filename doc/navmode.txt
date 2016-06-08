@@ -68,8 +68,11 @@ While navmode is active:
 - `<Up>`/`<Down>`/`<PageUp>`/`<PageDown>`
   Alternate bindings for u/d
 
-- `<Left>`/`<Right>`/`<Home>`/`<End>`
+- `<Home>`/`<End>`
   Alternate bindings for t/b
+
+- `<Left>`/`<Right>`
+  Move to previous/next mark. Calls `['`/`]'`.
 
 - m/' (followed by letter)
   Set mark/jump to mark
@@ -84,6 +87,39 @@ Args: (`firstmove`)
 Start navmode, with optional first movement `firstmove` (string with
 motion char).
 
+*NavmodePageDown()*
+Move half-page down (`<C-d>`) while staying in navmode.
+
+*NavmodePageUp()*
+Move half-page up (`<C-u>`) while staying in navmode.
+
+*NavmodeLineDown()*
+Move one line down (`<C-e>`) while staying in navmode.
+
+*NavmodeLineUp()*
+Move one line up (`<C-y>`) while staying in navmode.
+
+*NavmodeTop()*
+Move to top of buffer while staying in navmode.
+
+*NavmodeBottom()*
+Move to bottom of buffer while staying in navmode.
+
+*NavmodeMark()*
+Wait for input and set the mark for the read char while staying in navmode.
+
+*NavmodeJump()*
+Wait for input and move to the mark corresponding to the read char while
+staying in navmode.
+
+*NavmodeCancel()*
+Exit navmode and move back to where it started.
+
+*NavmodeFeedkeys()*
+Args: `execstr` (, `fkmode`)
+Sends `execstr` as normal mode keystrokes, and stay in navmode. Second arg is
+an optional mode, cf. |feedkeys|.
+
 =============================================================================
 4. OPTIONS ~
                                                               *navmode-options*
@@ -91,6 +127,18 @@ motion char).
 *g:navmode_noremap*                                default: `1`
 Prevent the use of remapped motion keys (eg. `<C-d>`). Set to `0` to allow
 remaps.
+
+*g:navmode_no_default_map*                         default: `0`
+Disable the default bindings described above (you will need to define your 
+own, see |g:navmode_map|).
+
+*g:navmode_map*                                    default: (see above)
+Dictionary of (string containing keystrokes) to (string to be execute'd).
+The mapping will leave navmode after execution, unless it calls one of the
+Navmode special functions eg.
+>
+    let g:navmode_map = { "\<Right>":  "call NavmodeFeedkeys(']''')" }
+<
 
 =============================================================================
 5. CHANGELOG ~
@@ -100,6 +148,9 @@ remaps.
   - Initial release
 [1.1] - 2016-05-30
   - Add marks and arrow keys support
+[1.2] - 2016-06-02
+  - Default mappings are fully customizable
+  - Add previous/next mark motions on L/R arrows
 
 =============================================================================
 6. CONTRIBUTE ~
